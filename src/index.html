@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit Pro — Know Your Number Before You List</title>
+    <meta name="description" content="Free margin calculator for digital product sellers. Stack platform fees, compare across marketplaces, price with confidence.">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f5f3ef;
+            --white: #ffffff;
+            --ink: #18160f;
+            --ink-soft: #4c4840;
+            --ink-muted: #9c9488;
+            --border: #e2ddd5;
+            --border-soft: #ede9e2;
+            --surface: #faf8f5;
+            --accent: #2d6a4f;
+            --accent-light: #eaf3ee;
+            --accent-mid: #b7d9c5;
+            --accent-glow: rgba(45,106,79,0.08);
+            --warn: #92400e;
+            --warn-bg: #fef3c7;
+            --err: #991b1b;
+            --err-bg: #fee2e2;
+            --serif: 'Instrument Serif', Georgia, serif;
+            --sans: 'Outfit', sans-serif;
+            --mono: 'DM Mono', monospace;
+            --r-sm: 10px;
+            --r-md: 14px;
+            --r-lg: 20px;
+            --r-xl: 28px;
+            --sh-sm: 0 1px 4px rgba(0,0,0,0.05);
+            --sh-md: 0 4px 20px rgba(0,0,0,0.08);
+            --sh-lg: 0 16px 56px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky; top: 0; z-index: 200;
+            background: rgba(245,243,239,0.9);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            max-width: 1140px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; height: 58px;
+        }
+        .logo { font-family: var(--serif); font-size: 22px; color: var(--ink); text-decoration: none; }
+        .logo em { font-style: italic; color: var(--accent); }
+        .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+        .nav-links a { font-size: 13px; font-weight: 500; color: var(--ink-soft); text-decoration: none; transition: color .2s; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-pill {
+            background: var(--ink); color: var(--white) !important;
+            padding: 7px 16px; border-radius: 8px; font-weight: 600 !important;
+            transition: background .2s !important;
+        }
+        .nav-pill:hover { background: var(--accent) !important; }
+
+        /* ── HERO ── */
+        .hero {
+            max-width: 1140px; margin: 0 auto;
+            padding: 80px 28px 56px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 72px; align-items: start;
+        }
+        .hero-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--accent);
+            background: var(--accent-light); border: 1px solid var(--accent-mid);
+            padding: 5px 13px; border-radius: 20px; margin-bottom: 22px;
+        }
+        .hero-eyebrow::before { content:''; width:6px; height:6px; background: var(--accent); border-radius:50%; }
+        .hero h1 {
+            font-family: var(--serif);
+            font-size: clamp(48px, 5.5vw, 72px);
+            line-height: 1.1; letter-spacing: -1px;
+            margin-bottom: 18px; color: var(--ink);
+        }
+        .hero h1 em { font-style: italic; color: var(--accent); }
+        .hero-sub { font-size: 17px; color: var(--ink-soft); font-weight: 300; line-height: 1.75; margin-bottom: 32px; }
+        .proof-list { display: flex; flex-direction: column; gap: 10px; }
+        .proof-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); font-weight: 400; }
+        .proof-dot { width:18px; height:18px; background: var(--accent-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .proof-dot svg { color: var(--accent); }
+
+        /* ── CALC CARD ── */
+        .calc-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--r-xl);
+            box-shadow: var(--sh-lg);
+            overflow: hidden;
+            animation: slideUp .65s cubic-bezier(.22,1,.36,1) both;
+        }
+        @keyframes slideUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+
+        .calc-top {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border-soft);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .calc-top-title { font-family: var(--serif); font-size: 17px; color: var(--ink); }
+        .free-badge {
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .8px; color: var(--accent);
+            background: var(--accent-light); border: 1px solid var(--accent-mid);
+            padding: 3px 10px; border-radius: 20px;
+        }
+
+        /* Mode tabs */
+        .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg); border-bottom: 1px solid var(--border); }
+        .mode-tab {
+            padding: 12px 10px; font-family: var(--sans); font-size: 12px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .5px;
+            color: var(--ink-muted); background: transparent; border: none;
+            border-bottom: 2px solid transparent; cursor: pointer; transition: all .2s;
+        }
+        .mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--white); }
+        .mode-tab:not(.active):hover { color: var(--ink); }
+
+        .calc-body { padding: 20px 22px; }
+
+        /* Labels & inputs */
+        .lbl {
+            display: block; font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--ink-muted); margin-bottom: 6px;
+        }
+        .sel-wrap { position: relative; margin-bottom: 16px; }
+        select {
+            width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+            color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 500;
+            padding: 9px 34px 9px 11px; border-radius: var(--r-sm); outline: none;
+            appearance: none; cursor: pointer; transition: border-color .2s;
+        }
+        select:focus { border-color: var(--accent); }
+        .sel-arr { position:absolute; right:11px; top:50%; transform:translateY(-50%); font-size:9px; color:var(--ink-muted); pointer-events:none; }
+
+        .fields { display: flex; flex-direction: column; gap: 13px; margin-bottom: 18px; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .inp-wrap { position: relative; }
+
+        input[type=number] {
+            width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+            color: var(--ink); font-family: var(--sans); font-size: 14px; font-weight: 500;
+            padding: 9px 32px 9px 11px; border-radius: var(--r-sm); outline: none;
+            transition: border-color .2s, background .2s; -moz-appearance: textfield;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+        input[type=number]:focus { border-color: var(--accent); background: var(--white); }
+        input[type=number].error { border-color: var(--err); }
+
+        .inp-unit { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--ink-muted); pointer-events:none; font-family:var(--mono); }
+
+        .main-inp input { font-size:26px; font-family:var(--serif); padding:13px 38px 13px 13px; border-radius:var(--r-md); letter-spacing:-.5px; }
+        .main-inp .inp-unit { font-size:15px; right:13px; }
+
+        .err-msg { font-size:11px; color:var(--err); margin-top:4px; min-height:14px; display:block; font-weight:500; }
+
+        /* ── STACKED FEE SECTION ── */
+        .stack-section {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--r-md);
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .stack-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .stack-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); }
+        .add-fee-btn {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 600; color: var(--accent);
+            background: var(--accent-light); border: 1px solid var(--accent-mid);
+            padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all .2s;
+            font-family: var(--sans);
+        }
+        .add-fee-btn:hover { background: var(--accent-mid); }
+
+        .fee-layer {
+            display: grid; grid-template-columns: 1fr 1fr auto;
+            gap: 8px; align-items: end; margin-bottom: 8px;
+        }
+        .fee-layer:last-child { margin-bottom: 0; }
+
+        .remove-btn {
+            width: 30px; height: 34px; background: var(--err-bg); border: 1px solid #fca5a5;
+            border-radius: 8px; color: var(--err); font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .2s; flex-shrink: 0;
+        }
+        .remove-btn:hover { background: #fecaca; }
+
+        .fee-preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .fee-chip {
+            font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px;
+            background: var(--white); border: 1px solid var(--border);
+            color: var(--ink-soft); cursor: pointer; transition: all .2s; font-family: var(--sans);
+        }
+        .fee-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+        /* Result panel */
+        .result-panel { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px; }
+        .res-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+        .res-lbl { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .7px; font-weight: 500; }
+        .res-val { font-size: 13px; color: var(--ink); font-family: var(--mono); font-weight: 400; }
+        .res-val.minus { color: var(--err); }
+        .res-sep { height: 1px; background: var(--border); margin: 10px 0; }
+        .res-main { display: flex; justify-content: space-between; align-items: center; }
+        .res-main-lbl { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+        .res-main-val { font-family: var(--serif); font-size: 34px; letter-spacing: -.5px; transition: color .3s; }
+        .res-main-val.pos { color: var(--accent); }
+        .res-main-val.neg { color: var(--err); }
+        .margin-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 600; padding: 3px 10px;
+            border-radius: 20px; margin-top: 8px; transition: all .3s;
+        }
+        .margin-pill.good { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-mid); }
+        .margin-pill.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid #fde68a; }
+        .margin-pill.bad  { background: var(--err-bg); color: var(--err); border: 1px solid #fca5a5; }
+
+        .copy-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            width: 100%; margin-top: 12px; padding: 10px;
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--r-sm); font-family: var(--sans);
+            font-size: 12px; font-weight: 600; color: var(--ink-soft);
+            cursor: pointer; transition: all .2s;
+            text-transform: uppercase; letter-spacing: .5px;
+        }
+        .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ── COMPARE SECTION ── */
+        .compare-section {
+            max-width: 1140px; margin: 0 auto;
+            padding: 72px 28px;
+        }
+        .compare-header { margin-bottom: 40px; }
+        .section-tag { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; color:var(--accent); display:block; margin-bottom:10px; }
+        .section-title { font-family:var(--serif); font-size:clamp(26px,3vw,38px); letter-spacing:-1px; line-height:1.15; margin-bottom:10px; }
+        .section-sub { font-size:15px; color:var(--ink-soft); font-weight:300; line-height:1.7; max-width:540px; }
+
+        .compare-input-row {
+            display: grid; grid-template-columns: 1fr 1fr auto;
+            gap: 16px; align-items: end; margin-bottom: 32px;
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: var(--r-lg); padding: 20px;
+            box-shadow: var(--sh-sm);
+        }
+        .compare-run-btn {
+            background: var(--ink); color: var(--white);
+            border: none; border-radius: var(--r-sm);
+            font-family: var(--sans); font-size: 13px; font-weight: 600;
+            padding: 10px 22px; cursor: pointer; transition: background .2s;
+            white-space: nowrap; height: 40px;
+        }
+        .compare-run-btn:hover { background: var(--accent); }
+
+        /* Compare grid */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .compare-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 20px;
+            transition: all .25s;
+            position: relative;
+            overflow: hidden;
+        }
+        .compare-card:hover { box-shadow: var(--sh-md); transform: translateY(-2px); }
+        .compare-card.best { border-color: var(--accent); background: var(--accent-light); }
+        .compare-card.best::before {
+            content: 'Best';
+            position: absolute; top: 12px; right: 12px;
+            font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            background: var(--accent); color: var(--white);
+            padding: 2px 8px; border-radius: 4px;
+        }
+        .compare-card.worst { border-color: #fca5a5; }
+
+        .cc-platform { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+        .cc-fees { font-size: 11px; color: var(--ink-muted); font-family: var(--mono); margin-bottom: 14px; }
+        .cc-breakdown { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .cc-row { display: flex; justify-content: space-between; font-size: 11px; }
+        .cc-row-lbl { color: var(--ink-muted); }
+        .cc-row-val { font-family: var(--mono); color: var(--ink); }
+        .cc-row-val.red { color: var(--err); }
+        .cc-sep { height: 1px; background: var(--border); margin: 8px 0; }
+        .cc-profit { display: flex; justify-content: space-between; align-items: center; }
+        .cc-profit-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink); }
+        .cc-profit-val { font-family: var(--serif); font-size: 24px; letter-spacing: -.5px; }
+        .cc-profit-val.pos { color: var(--accent); }
+        .cc-profit-val.neg { color: var(--err); }
+        .cc-margin { font-size: 11px; font-weight: 500; color: var(--ink-muted); margin-top: 4px; }
+
+        /* ── HOW IT WORKS ── */
+        .hiw { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 72px 28px; }
+        .hiw-inner { max-width: 1140px; margin: 0 auto; }
+        .hiw-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 48px; margin-top: 48px; }
+        .hiw-num { font-family: var(--serif); font-size: 52px; color: var(--border); line-height:1; margin-bottom:14px; letter-spacing:-2px; }
+        .hiw-ttl { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+        .hiw-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.7; font-weight: 300; }
+
+        /* ── FOOTER ── */
+        footer { border-top: 1px solid var(--border); padding: 28px; }
+        .footer-inner { max-width: 1140px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .footer-logo { font-family: var(--serif); font-size: 18px; color: var(--ink); text-decoration: none; }
+        .footer-logo em { font-style:italic; color:var(--accent); }
+        .footer-note { font-size: 12px; color: var(--ink-muted); }
+
+        /* ── FADE ANIM ── */
+        .fade-up { opacity:0; transform:translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+        .fade-up.visible { opacity:1; transform:translateY(0); }
+
+        @media(max-width:768px) {
+            .hero { grid-template-columns:1fr; gap:36px; padding:56px 20px 36px; }
+            .hiw-grid { grid-template-columns:1fr; gap:28px; }
+            .nav-links { display:none; }
+            .compare-input-row { grid-template-columns:1fr; }
+            .compare-grid { grid-template-columns:1fr 1fr; }
+        }
+        @media(max-width:480px) { .compare-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-inner">
+        <a href="#" class="logo">Profit<em>Pro</em></a>
+        <ul class="nav-links">
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#compare">Compare Platforms</a></li>
+            <li><a href="#calculator" class="nav-pill">Use Calculator</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- HERO + CALC -->
+<div class="hero" id="calculator">
+    <!-- Left -->
+    <div>
+        <div class="hero-eyebrow">Free Forever — No Sign Up</div>
+        <h1>Know your <em>exact</em> number before you list.</h1>
+        <p class="hero-sub">Stack platform fees, add production costs, and see true profit — or work backwards from your target earnings to get the perfect listing price.</p>
+        <div class="proof-list">
+            <div class="proof-item">
+                <div class="proof-dot"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                Stack multiple fees (e.g. Etsy + Stripe payment processing)
+            </div>
+            <div class="proof-item">
+                <div class="proof-dot"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                Compare all platforms side-by-side instantly
+            </div>
+            <div class="proof-item">
+                <div class="proof-dot"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                Reverse price: enter target profit → get list price
+            </div>
+            <div class="proof-item">
+                <div class="proof-dot"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                Includes cost of goods for true net profit
+            </div>
+        </div>
+    </div>
+
+    <!-- Calc Card -->
+    <div class="calc-card">
+        <div class="calc-top">
+            <span class="calc-top-title">Margin Calculator</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span id="calcVerified" style="font-size:10px;color:var(--ink-muted);font-family:var(--mono);"></span>
+                <span class="free-badge">Free</span>
+            </div>
+        </div>
+
+        <div class="mode-tabs">
+            <button class="mode-tab active" id="modeNet" onclick="setMode('net')">Calculate Profit</button>
+            <button class="mode-tab" id="modeTarget" onclick="setMode('target')">Find List Price</button>
+        </div>
+
+        <div class="calc-body">
+            <div class="fields">
+                <!-- Main input -->
+                <div>
+                    <label id="mainLabel" class="lbl">Sale Price</label>
+                    <div class="inp-wrap main-inp">
+                        <input type="number" id="mainVal" value="49.00" step="0.01" min="0" oninput="runCalc()">
+                        <span class="inp-unit">$</span>
+                    </div>
+                    <span class="err-msg" id="mainErr"></span>
+                </div>
+
+                <!-- COGS -->
+                <div>
+                    <label class="lbl">Cost of Goods / Production ($)</label>
+                    <div class="inp-wrap">
+                        <input type="number" id="cogs" value="0.00" step="0.01" min="0" oninput="runCalc()">
+                        <span class="inp-unit">$</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stacked Fees -->
+            <div class="stack-section">
+                <div class="stack-header">
+                    <span class="stack-title">Fee Layers</span>
+                    <button class="add-fee-btn" onclick="addFeeLayer()">+ Add Fee</button>
+                </div>
+
+                <!-- Quick presets -->
+                <div class="fee-preset-row" id="presetChips">
+                    <span class="fee-chip" onclick="addPreset('etsy_txn')">Etsy Txn 6.5%</span>
+                    <span class="fee-chip" onclick="addPreset('etsy_pay')">Etsy Payments 3%+$0.25</span>
+                    <span class="fee-chip" onclick="addPreset('stripe')">Stripe 2.9%+$0.30</span>
+                    <span class="fee-chip" onclick="addPreset('gumroad')">Gumroad 10%</span>
+                    <span class="fee-chip" onclick="addPreset('lemon')">LemonSqueezy 5%+$0.50</span>
+                    <span class="fee-chip" onclick="addPreset('paypal')">PayPal 3.49%+$0.49</span>
+                </div>
+
+                <div id="feeLayers"></div>
+            </div>
+
+            <!-- Result -->
+            <div class="result-panel">
+                <div class="res-row">
+                    <span class="res-lbl" id="priceLabel">Sale Price</span>
+                    <span class="res-val" id="showPrice">$49.00</span>
+                </div>
+                <div class="res-row" id="rowCogs" style="display:none">
+                    <span class="res-lbl">Cost of Goods</span>
+                    <span class="res-val minus" id="showCogs">—</span>
+                </div>
+                <div id="feeBreakdown"></div>
+                <div class="res-sep"></div>
+                <div class="res-main">
+                    <span class="res-main-lbl" id="resultLabel">Net Profit</span>
+                    <span class="res-main-val pos" id="resultValue">—</span>
+                </div>
+                <div><span class="margin-pill good" id="marginPill">—</span></div>
+            </div>
+
+            <button class="copy-btn" onclick="copyResult()">
+                <span id="copyIcon">⎘</span>
+                <span id="copyText">Copy Result</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- COMPARE SECTION -->
+<div class="compare-section" id="compare">
+    <div class="compare-header fade-up">
+        <span class="section-tag">Platform Comparison</span>
+        <h2 class="section-title">Compare all platforms at once.</h2>
+        <p class="section-sub">Enter one price and see exactly what you pocket on every marketplace — side by side.</p>
+    </div>
+
+    <div class="compare-input-row fade-up">
+        <div>
+            <label class="lbl">Sale Price ($)</label>
+            <div class="inp-wrap">
+                <input type="number" id="cmpPrice" value="49.00" step="0.01" min="0" oninput="runCompare()">
+                <span class="inp-unit">$</span>
+            </div>
+        </div>
+        <div>
+            <label class="lbl">Your Production Cost ($)</label>
+            <div class="inp-wrap">
+                <input type="number" id="cmpCogs" value="0.00" step="0.01" min="0" oninput="runCompare()">
+                <span class="inp-unit">$</span>
+            </div>
+        </div>
+        <button class="compare-run-btn" onclick="runCompare()">Compare →</button>
+    </div>
+
+    <div class="compare-grid fade-up" id="compareGrid"></div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="hiw" id="how-it-works">
+    <div class="hiw-inner">
+        <div class="fade-up">
+            <span class="section-tag">How It Works</span>
+            <h2 class="section-title">Three steps to price with confidence.</h2>
+        </div>
+        <div class="hiw-grid">
+            <div class="hiw-item fade-up">
+                <div class="hiw-num">01</div>
+                <div class="hiw-ttl">Stack your fees</div>
+                <p class="hiw-desc">Add every fee layer that applies — marketplace transaction fee, payment processor, listing fee. Profit Pro totals them all so nothing is hidden.</p>
+            </div>
+            <div class="hiw-item fade-up">
+                <div class="hiw-ttl hiw-num" style="font-size:52px;font-family:var(--serif);color:var(--border);letter-spacing:-2px;margin-bottom:14px;line-height:1;">02</div>
+                <div class="hiw-ttl">Enter your target</div>
+                <p class="hiw-desc">Flip to "Find List Price" mode. Enter exactly how much you want to take home — Profit Pro works backwards to give you the right listing price.</p>
+            </div>
+            <div class="hiw-item fade-up">
+                <div class="hiw-num">03</div>
+                <div class="hiw-ttl">Compare & decide</div>
+                <p class="hiw-desc">Run the comparison panel to see your real profit across every platform simultaneously. Pick the one that keeps the most of your money.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-inner">
+        <a href="#" class="footer-logo">Profit<em>Pro</em></a>
+        <p class="footer-note">Free forever. Built for digital product sellers. No sign-up required.</p>
+        <p class="footer-note" id="footerVerified" style="color:var(--ink-muted);">Fee rates last verified: <strong id="footerVerifiedDate"></strong></p>
+        <p class="footer-note" style="font-size:11px;">Fee data last verified <strong>May 2026</strong> — <a href="#compare" style="color:var(--accent);text-decoration:none;">verify sources ↗</a></p>
+    </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════
+   !! MONTHLY MAINTENANCE !!
+   1. Visit each URL below
+   2. Confirm fee values match
+   3. Update LAST_VERIFIED to current month/year
+   4. Update any changed fee values
+   5. Save & redeploy
+
+   stripe.com/pricing
+   help.gumroad.com/article/66-gumroads-fees
+   etsy.com/help/article/138
+   lemonsqueezy.com/pricing
+   paypal.com/webapps/mpp/merchant-fees
+══════════════════════════════════════════ */
+const LAST_VERIFIED = 'May 2026'; // ← UPDATE THIS EACH MONTH
+
+/* ══════════════════════════════════════════
+   DATA
+══════════════════════════════════════════ */
+const PRESETS = {
+    etsy_txn:  { label: 'Etsy Transaction',   pct: 6.5,  flat: 0    },
+    etsy_pay:  { label: 'Etsy Payments',       pct: 3.0,  flat: 0.25 },
+    stripe:    { label: 'Stripe',              pct: 2.9,  flat: 0.30 },
+    gumroad:   { label: 'Gumroad',             pct: 10,   flat: 0    },
+    lemon:     { label: 'LemonSqueezy',        pct: 5,    flat: 0.50 },
+    paypal:    { label: 'PayPal',              pct: 3.49, flat: 0.49 },
+};
+
+const PLATFORMS = [
+    { name: 'Stripe',          fees: [{ pct:2.9,  flat:0.30 }], url: 'https://stripe.com/pricing' },
+    { name: 'LemonSqueezy',    fees: [{ pct:5,    flat:0.50 }], url: 'https://www.lemonsqueezy.com/pricing' },
+    { name: 'PayPal',          fees: [{ pct:3.49, flat:0.49 }], url: 'https://www.paypal.com/webapps/mpp/merchant-fees' },
+    { name: 'Etsy + Payments', fees: [{ pct:6.5,  flat:0 }, { pct:3.0, flat:0.25 }], url: 'https://www.etsy.com/help/article/138' },
+    { name: 'Etsy (txn only)', fees: [{ pct:6.5,  flat:0 }], url: 'https://www.etsy.com/help/article/138' },
+    { name: 'Gumroad',         fees: [{ pct:10,   flat:0 }], url: 'https://help.gumroad.com/article/66-gumroads-fees' },
+];
+
+/* ══════════════════════════════════════════
+   FEE LAYERS STATE
+══════════════════════════════════════════ */
+let layers = [];
+let layerCounter = 0;
+let currentMode = 'net';
+
+function addFeeLayer(pct = 0, flat = 0, label = '') {
+    const id = ++layerCounter;
+    layers.push({ id, pct, flat, label });
+    renderLayers();
+    runCalc();
+}
+
+function addPreset(key) {
+    const p = PRESETS[key];
+    if (!p) return;
+    addFeeLayer(p.pct, p.flat, p.label);
+}
+
+function removeLayer(id) {
+    layers = layers.filter(l => l.id !== id);
+    renderLayers();
+    runCalc();
+}
+
+function updateLayer(id, field, val) {
+    const l = layers.find(l => l.id === id);
+    if (l) { l[field] = parseFloat(val) || 0; runCalc(); }
+}
+
+function renderLayers() {
+    const container = document.getElementById('feeLayers');
+    if (layers.length === 0) {
+        container.innerHTML = '<p style="font-size:12px;color:var(--ink-muted);text-align:center;padding:8px 0;">No fees added — use chips above or "+ Add Fee"</p>';
+        return;
+    }
+    container.innerHTML = layers.map(l => `
+        <div class="fee-layer" id="layer-${l.id}">
+            <div>
+                <label class="lbl">Fee %</label>
+                <div class="inp-wrap">
+                    <input type="number" value="${l.pct}" step="0.1" min="0" max="99"
+                        oninput="updateLayer(${l.id},'pct',this.value)"
+                        style="font-size:13px;padding:8px 28px 8px 10px;">
+                    <span class="inp-unit">%</span>
+                </div>
+            </div>
+            <div>
+                <label class="lbl">${l.label || 'Fixed Fee'} $</label>
+                <div class="inp-wrap">
+                    <input type="number" value="${l.flat}" step="0.01" min="0"
+                        oninput="updateLayer(${l.id},'flat',this.value)"
+                        style="font-size:13px;padding:8px 28px 8px 10px;">
+                    <span class="inp-unit">$</span>
+                </div>
+            </div>
+            <button class="remove-btn" onclick="removeLayer(${l.id})">×</button>
+        </div>
+    `).join('');
+}
+
+/* ══════════════════════════════════════════
+   CALC LOGIC
+══════════════════════════════════════════ */
+function calcFees(price, feeList) {
+    let total = 0;
+    feeList.forEach(f => { total += (price * (f.pct || 0) / 100) + (f.flat || 0); });
+    return total;
+}
+
+function reversePrice(desiredProfit, cogs, feeList) {
+    // Iterative solver for stacked fees (stacked % fees are non-trivial to invert analytically)
+    // Start with a guess and converge
+    let price = desiredProfit + cogs;
+    for (let i = 0; i < 50; i++) {
+        const fees = calcFees(price, feeList);
+        const actual = price - fees - cogs;
+        const diff = desiredProfit - actual;
+        price += diff;
+        if (Math.abs(diff) < 0.0001) break;
+    }
+    return Math.max(0, price);
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('modeNet').classList.toggle('active', mode === 'net');
+    document.getElementById('modeTarget').classList.toggle('active', mode === 'target');
+    document.getElementById('mainLabel').innerText   = mode === 'net' ? 'Sale Price' : 'Desired Take-Home';
+    document.getElementById('resultLabel').innerText = mode === 'net' ? 'Net Profit'  : 'Required List Price';
+    document.getElementById('priceLabel').innerText  = mode === 'net' ? 'Sale Price'  : 'Required List Price';
+    runCalc();
+}
+
+function runCalc() {
+    const mainVal   = parseFloat(document.getElementById('mainVal').value) || 0;
+    const cogs      = parseFloat(document.getElementById('cogs').value)    || 0;
+    const mainErr   = document.getElementById('mainErr');
+    const mainInput = document.getElementById('mainVal');
+
+    mainErr.innerText = '';
+    mainInput.classList.remove('error');
+    if (mainVal < 0) { mainErr.innerText = 'Value cannot be negative.'; mainInput.classList.add('error'); return; }
+
+    let listPrice, totalFees, netProfit, margin;
+
+    if (currentMode === 'net') {
+        listPrice  = mainVal;
+        totalFees  = calcFees(listPrice, layers);
+        netProfit  = listPrice - totalFees - cogs;
+        margin     = listPrice > 0 ? (netProfit / listPrice) * 100 : 0;
+    } else {
+        listPrice  = reversePrice(mainVal, cogs, layers);
+        totalFees  = calcFees(listPrice, layers);
+        netProfit  = mainVal;
+        margin     = listPrice > 0 ? (netProfit / listPrice) * 100 : 0;
+    }
+
+    // COGS row
+    const rowCogs = document.getElementById('rowCogs');
+    if (cogs > 0) { rowCogs.style.display = 'flex'; document.getElementById('showCogs').innerText = '-$' + cogs.toFixed(2); }
+    else { rowCogs.style.display = 'none'; }
+
+    document.getElementById('showPrice').innerText = '$' + Math.max(0, listPrice).toFixed(2);
+
+    // Per-layer fee breakdown
+    const breakdown = document.getElementById('feeBreakdown');
+    if (layers.length === 0) {
+        breakdown.innerHTML = '<div class="res-row"><span class="res-lbl">Platform Fee</span><span class="res-val minus">$0.00</span></div>';
+    } else {
+        breakdown.innerHTML = layers.map(l => {
+            const fee = (listPrice * l.pct / 100) + l.flat;
+            return `<div class="res-row"><span class="res-lbl">${l.label || 'Fee layer'} (${l.pct}%${l.flat > 0 ? ' + $' + l.flat.toFixed(2) : ''})</span><span class="res-val minus">-$${fee.toFixed(2)}</span></div>`;
+        }).join('');
+    }
+
+    const result   = currentMode === 'net' ? netProfit : listPrice;
+    const resultEl = document.getElementById('resultValue');
+    resultEl.innerText = '$' + Math.max(0, result).toFixed(2);
+    resultEl.className = 'res-main-val ' + (result >= 0 ? 'pos' : 'neg');
+
+    const pill = document.getElementById('marginPill');
+    const mStr = Math.abs(margin).toFixed(1);
+    if (margin >= 50)      { pill.className = 'margin-pill good'; pill.innerText = '↑ ' + mStr + '% margin'; }
+    else if (margin >= 20) { pill.className = 'margin-pill warn'; pill.innerText = '→ ' + mStr + '% margin'; }
+    else                   { pill.className = 'margin-pill bad';  pill.innerText = '↓ ' + mStr + '% margin'; }
+}
+
+function copyResult() {
+    const val  = document.getElementById('resultValue').innerText;
+    const txt  = document.getElementById('copyText');
+    const icon = document.getElementById('copyIcon');
+    navigator.clipboard.writeText(val).then(() => {
+        txt.innerText = 'Copied!'; icon.innerText = '✓';
+        setTimeout(() => { txt.innerText = 'Copy Result'; icon.innerText = '⎘'; }, 2000);
+    }).catch(() => {
+        txt.innerText = 'Copy manually';
+        setTimeout(() => { txt.innerText = 'Copy Result'; }, 2000);
+    });
+}
+
+/* ══════════════════════════════════════════
+   COMPARE PANEL
+══════════════════════════════════════════ */
+function runCompare() {
+    const price = parseFloat(document.getElementById('cmpPrice').value) || 0;
+    const cogs  = parseFloat(document.getElementById('cmpCogs').value)  || 0;
+
+    const results = PLATFORMS.map(p => {
+        const fees   = calcFees(price, p.fees);
+        const profit = price - fees - cogs;
+        const margin = price > 0 ? (profit / price) * 100 : 0;
+        const feeDesc = p.fees.map(f => `${f.pct}%${f.flat > 0 ? '+$'+f.flat : ''}`).join(' + ');
+        return { ...p, fees, profit, margin, feeDesc };
+    }).sort((a, b) => b.profit - a.profit);
+
+    const best  = results[0].name;
+    const worst = results[results.length - 1].name;
+
+    const grid = document.getElementById('compareGrid');
+    grid.innerHTML = results.map(r => `
+        <div class="compare-card${r.name === best ? ' best' : r.name === worst ? ' worst' : ''}">
+            <div class="cc-platform">${r.name}</div>
+            <div class="cc-fees">${r.feeDesc}</div>
+            <div class="cc-breakdown">
+                <div class="cc-row"><span class="cc-row-lbl">Sale price</span><span class="cc-row-val">$${price.toFixed(2)}</span></div>
+                ${cogs > 0 ? `<div class="cc-row"><span class="cc-row-lbl">Production</span><span class="cc-row-val red">-$${cogs.toFixed(2)}</span></div>` : ''}
+                <div class="cc-row"><span class="cc-row-lbl">Fees</span><span class="cc-row-val red">-$${r.fees.toFixed(2)}</span></div>
+            </div>
+            <div class="cc-sep"></div>
+            <div class="cc-profit">
+                <span class="cc-profit-lbl">Profit</span>
+                <span class="cc-profit-val ${r.profit >= 0 ? 'pos' : 'neg'}">$${Math.max(0,r.profit).toFixed(2)}</span>
+            </div>
+            <div class="cc-margin">${Math.abs(r.margin).toFixed(1)}% margin</div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:10px;color:var(--ink-muted);">Verified ${LAST_VERIFIED}</span>
+                <a href="${r.url}" target="_blank" rel="noopener" style="font-size:10px;color:var(--accent);text-decoration:none;font-weight:600;">Check fees ↗</a>
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ══════════════════════════════════════════
+   SCROLL ANIMATIONS
+══════════════════════════════════════════ */
+const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+            setTimeout(() => e.target.classList.add('visible'), i * 90);
+            observer.unobserve(e.target);
+        }
+    });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+document.getElementById('calcVerified').innerText     = 'Fees verified ' + LAST_VERIFIED;
+document.getElementById('footerVerifiedDate').innerText = LAST_VERIFIED;
+renderLayers();
+runCalc();
+runCompare();
+</script>
+</body>
+</html>
